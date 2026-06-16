@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>🛍️ Toy Shop</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Nunito+Sans:wght@400;600;700&display=swap');
+
+:root {
+  --bg:     #FFF9F0;
+  --card:   #FFFFFF;
+  --text:   #1E1B4B;
+  --muted:  #6B7280;
+  --green:  #22C55E;
+  --red:    #FF4D4D;
+  --blue:   #3B82F6;
+  --orange: #FB923C;
+  --yellow: #FACC15;
+  --purple: #A855F7;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  height: 100%; width: 100%;
+  font-family: 'Nunito Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+}
+
+/* ════════════════════════════════
+   SCREENS
+═══════════════════════════════════ */
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s;
+}
+.screen.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* ════════════════════════════════
+   SHARED HEADER
+═══════════════════════════════════ */
+header {
+  background: linear-gradient(135deg, #FF4D4D 0%, #FB923C 35%, #FACC15 65%, #22C55E 100%);
+  padding: 10px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 3px 10px rgba(0,0,0,.15);
+  flex-shrink: 0;
+  z-index: 5;
+}
+.shop-title {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 900;
+  font-size: 24px;
+  color: #fff;
+  text-shadow: 2px 2px 0 rgba(0,0,0,.2);
+}
+.header-pill {
+  background: rgba(255,255,255,.28);
+  border: 2px solid rgba(255,255,255,.5);
+  border-radius: 20px;
+  padding: 4px 13px;
+  font-weight: 800;
+  color: #fff;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background .1s;
+}
+.header-pill:hover { background: rgba(255,255,255,.42); }
+
+/* ════════════════════════════════
+   SCREEN 1 — SHOP
+═══════════════════════════════════ */
+#shopScreen .body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── Items panel ── */
+.items-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-right: 3px dashed #E5E7EB;
+  overflow: hidden;
+}
+.panel-top {
+  padding: 10px 14px 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.panel-label {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 900;
+  font-size: 14px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.diff-tabs { display: flex; gap: 6px; }
+.diff-tab {
+  border: none; border-radius: 20px; padding: 5px 11px;
+  font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 12px;
+  cursor: pointer; transition: all .15s; opacity: .5;
+}
+.diff-tab.easy  { background:#DCFCE7; color:#15803D; }
+.diff-tab.inter { background:#DBEAFE; color:#1D4ED8; }
+.diff-tab.hard  { background:#FEE2E2; color:#B91C1C; }
+.diff-tab.active { opacity:1; transform:scale(1.07); box-shadow:0 2px 8px rgba(0,0,0,.15); }
+
+.items-scroll { flex:1; overflow-y:auto; padding:8px 12px 12px; }
+.items-grid {
+  display: grid;
+  grid-template-columns: repeat(4,1fr);
+  gap: 10px;
+}
+.item-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 3px solid transparent;
+  padding: 10px 6px;
+  cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  transition: transform .12s;
+  position: relative; overflow: hidden;
+  user-select: none;
+}
+.item-card::before {
+  content:''; position:absolute; inset:0;
+  background: var(--ic,#ccc); opacity:.07;
+}
+.item-card:active { transform: scale(.93); }
+.item-card.bounce { animation: cardBounce .24s ease; }
+@keyframes cardBounce {
+  0%{transform:scale(1)} 40%{transform:scale(.87)} 70%{transform:scale(1.07)} 100%{transform:scale(1)}
+}
+.item-emoji { font-size: 30px; line-height:1; }
+.item-name { font-family:'Nunito',sans-serif; font-weight:800; font-size:11px; text-align:center; }
+.item-price {
+  font-family:'Nunito',sans-serif; font-weight:900; font-size:13px;
+  color: var(--ic,#333);
+  background: rgba(255,255,255,.9);
+  border-radius:8px; padding:2px 7px;
+  border: 2px solid var(--ic,#ccc);
+}
+
+/* ── Register panel ── */
+.register-panel {
+  width: 290px;
+  display: flex; flex-direction: column;
+  background: #FAFAFA;
+  flex-shrink: 0;
+}
+.receipt {
+  flex:1; overflow-y:auto;
+  padding: 10px 10px 6px;
+  display: flex; flex-direction: column; gap:5px;
+}
+.receipt-hdr {
+  text-align:center; padding-bottom:8px;
+  border-bottom: 2px dashed #D1D5DB; margin-bottom:2px; flex-shrink:0;
+}
+.receipt-hdr-name { font-family:'Nunito',sans-serif; font-weight:900; font-size:15px; }
+.receipt-hdr-sub  { font-size:11px; color:var(--muted); }
+.receipt-empty {
+  flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  color:#D1D5DB; font-size:13px; gap:8px;
+}
+.receipt-empty-icon { font-size:34px; }
+.line-item {
+  display:flex; align-items:center; gap:5px;
+  background:#fff; border-radius:10px; padding:6px 7px;
+  border-left: 4px solid var(--ic,#ccc);
+  animation: slideIn .14s ease;
+}
+@keyframes slideIn {
+  from{opacity:0;transform:translateX(12px)} to{opacity:1;transform:translateX(0)}
+}
+.li-emoji { font-size:17px; flex-shrink:0; }
+.li-info  { flex:1; min-width:0; }
+.li-name  { font-weight:700; font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.li-each  { font-size:10px; color:var(--muted); }
+.li-qctrl { display:flex; align-items:center; gap:3px; flex-shrink:0; }
+.qbtn {
+  background:#F3F4F6; border:none; border-radius:6px;
+  width:20px; height:20px; font-size:13px; font-weight:900;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  color:var(--text);
+}
+.qbtn:active { background:#E5E7EB; }
+.qnum { font-family:'Nunito',sans-serif; font-weight:900; font-size:12px; min-width:16px; text-align:center; }
+.li-total { font-family:'Nunito',sans-serif; font-weight:900; font-size:12px; flex-shrink:0; }
+.li-rm { background:none; border:none; font-size:14px; cursor:pointer; opacity:.45; flex-shrink:0; }
+.li-rm:hover { opacity:1; }
+
+/* Totals bar */
+.totals-bar {
+  border-top: 2px dashed #D1D5DB;
+  padding: 8px 12px;
+  background: #fff;
+  flex-shrink: 0;
+}
+.tot-row { display:flex; justify-content:space-between; font-size:12px; color:var(--muted); margin-bottom:2px; }
+.tot-grand { display:flex; justify-content:space-between; align-items:center; margin-top:5px; }
+.tot-label  { font-family:'Nunito',sans-serif; font-weight:900; font-size:17px; }
+.tot-amount { font-family:'Nunito',sans-serif; font-weight:900; font-size:24px; color:var(--green); }
+
+/* Pay button */
+.pay-btn-wrap { padding: 10px 12px 14px; flex-shrink:0; }
+.pay-btn {
+  width:100%; border:none; border-radius:14px; padding:14px;
+  font-family:'Nunito',sans-serif; font-weight:900; font-size:17px;
+  background: linear-gradient(135deg,#22C55E,#16A34A);
+  color:#fff; cursor:pointer;
+  box-shadow: 0 4px 14px rgba(34,197,94,.4);
+  transition: transform .1s, box-shadow .1s;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+}
+.pay-btn:active { transform:scale(.97); box-shadow:none; }
+.pay-btn-clear {
+  width:100%; border:none; border-radius:14px; padding:10px;
+  font-family:'Nunito',sans-serif; font-weight:900; font-size:14px;
+  background:#FEE2E2; color:#DC2626; cursor:pointer; margin-top:6px;
+  transition: transform .1s;
+}
+.pay-btn-clear:active { transform:scale(.97); }
+
+/* ════════════════════════════════
+   SCREEN 2 — PAYMENT
+═══════════════════════════════════ */
+#payScreen .body {
+  display:flex; flex:1; overflow:hidden; gap:0;
+}
+
+/* ── Left: method + denominations ── */
+.pay-left {
+  flex:1; display:flex; flex-direction:column;
+  padding: 14px 16px; gap:12px; overflow-y:auto;
+  border-right: 3px dashed #E5E7EB;
+}
+
+.method-tabs {
+  display:flex; gap:10px; flex-shrink:0;
+}
+.method-tab {
+  flex:1; border:3px solid #E5E7EB; border-radius:16px;
+  padding:12px 8px; background:#fff; cursor:pointer;
+  display:flex; flex-direction:column; align-items:center; gap:4px;
+  font-family:'Nunito',sans-serif; font-weight:900; font-size:15px;
+  color:var(--muted); transition: all .15s;
+}
+.method-tab .mt-icon { font-size:30px; }
+.method-tab.active.cash   { border-color:#22C55E; color:#15803D; background:#F0FDF4; }
+.method-tab.active.card   { border-color:#3B82F6; color:#1D4ED8; background:#EFF6FF; }
+
+/* Denomination section */
+.denom-section { flex:1; }
+.denom-title {
+  font-family:'Nunito',sans-serif; font-weight:900; font-size:13px;
+  color:var(--muted); text-transform:uppercase; letter-spacing:1px;
+  margin-bottom:12px;
+}
+
+/* Notes */
+.denom-note {
+  border-radius:14px; border:3px solid transparent;
+  padding:10px 6px;
+  cursor:pointer; user-select:none;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:4px; position:relative;
+  transition: transform .1s;
+}
+.denom-note:active { transform:scale(.92); }
+.note-body {
+  width:100%; border-radius:8px;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Nunito',sans-serif; font-weight:900;
+  padding:18px 0;
+  font-size:24px;
+  position:relative;
+  box-shadow: 2px 3px 6px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.3);
+}
+.note-label {
+  font-family:'Nunito',sans-serif; font-weight:800; font-size:12px;
+}
+
+/* Coins */
+.denom-coin {
+  border-radius:50%;
+  width:88px; height:88px;
+  cursor:pointer; user-select:none;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:2px; position:relative;
+  transition: transform .1s;
+  box-shadow: 0 4px 10px rgba(0,0,0,.22), inset 0 2px 0 rgba(255,255,255,.4), inset 0 -2px 0 rgba(0,0,0,.15);
+  margin: 0 auto;
+  border:4px solid transparent;
+}
+.denom-coin:active { transform:scale(.9); }
+.coin-val   { font-family:'Nunito',sans-serif; font-weight:900; font-size:18px; }
+.coin-label { font-family:'Nunito',sans-serif; font-weight:700; font-size:11px; }
+
+/* Qty badge — sits above everything */
+.denom-qty-badge {
+  position:absolute; top:-8px; right:-8px;
+  background:#1E1B4B; color:#fff;
+  font-family:'Nunito',sans-serif; font-weight:900; font-size:13px;
+  border-radius:999px; padding:2px 8px; min-width:26px; text-align:center;
+  opacity:0; transition:opacity .15s;
+  z-index:10;
+  box-shadow: 0 2px 6px rgba(0,0,0,.3);
+  pointer-events:none;
+}
+.denom-qty-badge.show { opacity:1; }
+
+/* Minus button */
+.denom-minus {
+  position:absolute; bottom:-6px; right:-6px;
+  background:#EF4444; border:2px solid #fff; border-radius:50%;
+  width:22px; height:22px; font-size:16px; font-weight:900;
+  cursor:pointer; color:#fff; line-height:1;
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; transition:opacity .15s;
+  z-index:10;
+  box-shadow: 0 2px 5px rgba(0,0,0,.25);
+}
+.denom-note:hover .denom-minus,
+.denom-coin:hover .denom-minus,
+.denom-note.used  .denom-minus,
+.denom-coin.used  .denom-minus { opacity:1; }
+
+.denom-coin.gold-coin {
+  width:96px; height:96px;
+  border-width:5px;
+}
+
+/* Denom grid — notes fill column, coins center naturally */
+.denom-grid {
+  display:grid;
+  grid-template-columns: repeat(4,1fr);
+  gap:14px 10px;
+  padding-bottom: 8px;
+}
+.card-pay-area {
+  display:none;
+  flex-direction:column; align-items:center; justify-content:center;
+  flex:1; gap:16px; padding:20px;
+}
+.card-pay-area.show { display:flex; }
+.card-visual {
+  background: linear-gradient(135deg,#3B82F6,#6366F1);
+  border-radius:18px; width:240px; height:150px;
+  display:flex; flex-direction:column; justify-content:flex-end;
+  padding:16px; color:#fff;
+  box-shadow: 0 8px 24px rgba(99,102,241,.45);
+  position:relative; overflow:hidden;
+}
+.card-visual::before {
+  content:''; position:absolute; top:-30px; right:-30px;
+  width:130px; height:130px; border-radius:50%;
+  background:rgba(255,255,255,.12);
+}
+.card-chip { font-size:28px; margin-bottom:8px; }
+.card-num  { font-family:'Nunito',sans-serif; font-weight:700; font-size:14px; letter-spacing:2px; opacity:.8; }
+.card-name { font-family:'Nunito',sans-serif; font-weight:900; font-size:13px; }
+.card-tap-hint {
+  font-family:'Nunito',sans-serif; font-weight:900; font-size:16px;
+  color:var(--muted); text-align:center;
+}
+.card-tap-hint .big { font-size:48px; display:block; margin-bottom:4px; }
+.card-confirm-btn {
+  background:linear-gradient(135deg,#3B82F6,#6366F1);
+  color:#fff; border:none; border-radius:14px; padding:14px 32px;
+  font-family:'Nunito',sans-serif; font-weight:900; font-size:16px;
+  cursor:pointer; box-shadow:0 4px 14px rgba(99,102,241,.4);
+  transition:transform .1s;
+}
+.card-confirm-btn:active { transform:scale(.97); }
+
+/* ── Right: running total & summary ── */
+.pay-right {
+  width:280px; flex-shrink:0;
+  display:flex; flex-direction:column;
+  background:#FAFAFA;
+}
+.pay-summary {
+  flex:1; overflow-y:auto; padding:12px;
+  display:flex; flex-direction:column; gap:6px;
+}
+.ps-hdr {
+  text-align:center; padding-bottom:8px;
+  border-bottom:2px dashed #D1D5DB; margin-bottom:4px;
+}
+.ps-hdr-name { font-family:'Nunito',sans-serif; font-weight:900; font-size:14px; }
+.ps-item {
+  display:flex; align-items:center; gap:6px;
+  background:#fff; border-radius:10px; padding:6px 8px;
+  border-left:3px solid var(--ic,#ccc);
+  font-size:12px;
+}
+.ps-emoji { font-size:15px; flex-shrink:0; }
+.ps-name  { flex:1; font-weight:700; }
+.ps-amt   { font-family:'Nunito',sans-serif; font-weight:900; font-size:12px; }
+
+/* Totals + cash counter */
+.pay-totals {
+  border-top:2px dashed #D1D5DB;
+  padding:10px 12px; background:#fff; flex-shrink:0;
+}
+.pt-row { display:flex; justify-content:space-between; font-size:12px; color:var(--muted); margin-bottom:3px; }
+.pt-big { display:flex; justify-content:space-between; align-items:center; margin-top:5px; }
+.pt-label  { font-family:'Nunito',sans-serif; font-weight:900; font-size:16px; }
+.pt-amount { font-family:'Nunito',sans-serif; font-weight:900; font-size:24px; color:var(--green); }
+
+/* Cash counter */
+.cash-counter {
+  margin-top:8px; background:#F0FDF4; border:2px solid #86EFAC;
+  border-radius:12px; padding:8px 10px;
+}
+.cc-row { display:flex; justify-content:space-between; font-size:12px; margin-bottom:2px; }
+.cc-label { font-weight:700; color:#15803D; }
+.cc-val   { font-family:'Nunito',sans-serif; font-weight:900; font-size:14px; color:#15803D; }
+.cc-change-row {
+  display:flex; justify-content:space-between; align-items:center;
+  border-top:1px dashed #86EFAC; margin-top:6px; padding-top:6px;
+}
+.cc-change-label { font-family:'Nunito',sans-serif; font-weight:900; font-size:13px; }
+.cc-change-val   { font-family:'Nunito',sans-serif; font-weight:900; font-size:20px; }
+.cc-positive { color:#15803D; }
+.cc-negative { color:#DC2626; }
+.cash-counter.owe { background:#FEF2F2; border-color:#FCA5A5; }
+.cash-counter.owe .cc-label { color:#DC2626; }
+.cash-counter.owe .cc-val   { color:#DC2626; }
+
+/* Pay right footer */
+.pay-footer { padding:10px 12px 14px; display:flex; flex-direction:column; gap:7px; flex-shrink:0; }
+.pf-back {
+  background:#F3F4F6; border:none; border-radius:12px; padding:10px;
+  font-family:'Nunito',sans-serif; font-weight:900; font-size:14px;
+  color:var(--muted); cursor:pointer; transition:transform .1s;
+}
+.pf-back:active { transform:scale(.97); }
+.pf-complete {
+  background:linear-gradient(135deg,#22C55E,#16A34A);
+  color:#fff; border:none; border-radius:12px; padding:13px;
+  font-family:'Nunito',sans-serif; font-weight:900; font-size:16px;
+  cursor:pointer; box-shadow:0 4px 14px rgba(34,197,94,.38);
+  transition:transform .1s;
+}
+.pf-complete:active { transform:scale(.97); }
+.pf-complete:disabled {
+  background:#D1D5DB; color:#9CA3AF; box-shadow:none; cursor:not-allowed;
+}
+
+/* ════════════════════════════════
+   CHANGE GUIDE
+═══════════════════════════════════ */
+.change-guide {
+  margin-top:16px;
+  background: linear-gradient(135deg, #FFFBEB, #FEF3C7);
+  border: 2px solid #FCD34D;
+  border-radius: 16px;
+  padding: 14px;
+  animation: slideUp .2s ease;
+}
+@keyframes slideUp {
+  from { opacity:0; transform:translateY(8px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.cg-header {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:12px;
+}
+.cg-title {
+  font-family:'Nunito',sans-serif; font-weight:900; font-size:14px;
+  color:#92400E;
+}
+.cg-amount {
+  font-family:'Nunito',sans-serif; font-weight:900; font-size:22px;
+  color:#D97706;
+  background:#fff; border-radius:10px; padding:2px 12px;
+  border:2px solid #FCD34D;
+}
+/* Row per denomination in the guide */
+.cg-denoms {
+  display:flex; flex-direction:column; gap:8px;
+}
+.cg-row {
+  display:flex; align-items:center; gap:10px;
+  background:#fff; border-radius:12px; padding:8px 12px;
+  border:2px solid #FEF08A;
+  animation: slideIn .15s ease;
+}
+.cg-row-visuals {
+  display:flex; flex-wrap:wrap; gap:5px; flex:1;
+  align-items:center;
+}
+/* Mini note in change guide */
+.cg-note {
+  display:inline-flex; align-items:center; justify-content:center;
+  border-radius:6px;
+  font-family:'Nunito',sans-serif; font-weight:900; font-size:13px;
+  color:#fff; padding:5px 10px;
+  box-shadow: 1px 2px 4px rgba(0,0,0,.2), inset 0 1px 0 rgba(255,255,255,.25);
+  min-width:46px;
+}
+/* Mini coin in change guide */
+.cg-coin {
+  display:inline-flex; align-items:center; justify-content:center;
+  border-radius:50%; width:40px; height:40px;
+  font-family:'Nunito',sans-serif; font-weight:900; font-size:11px;
+  box-shadow: 1px 2px 5px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.4), inset 0 -1px 0 rgba(0,0,0,.15);
+  border:2px solid transparent;
+  flex-shrink:0;
+}
+.cg-row-label {
+  font-family:'Nunito',sans-serif; font-weight:900; font-size:13px;
+  color:#78350F; white-space:nowrap; flex-shrink:0;
+}
+.cg-row-subtotal {
+  font-family:'Nunito',sans-serif; font-weight:800; font-size:12px;
+  color:#A16207; white-space:nowrap; flex-shrink:0;
+  margin-left:auto;
+}
+.cg-exact {
+  text-align:center; padding:10px;
+  font-family:'Nunito',sans-serif; font-weight:900; font-size:15px;
+  color:#15803D;
+}
+
+/* ════════════════════════════════
+   SUCCESS OVERLAY
+═══════════════════════════════════ */
+.success-overlay {
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,.5); backdrop-filter:blur(5px);
+  z-index:999; align-items:center; justify-content:center;
+}
+.success-overlay.show { display:flex; }
+.success-card {
+  background:#fff; border-radius:24px; padding:28px 32px;
+  text-align:center; max-width:380px; width:94%;
+  max-height:90vh; overflow-y:auto;
+  animation:popIn .28s cubic-bezier(.175,.885,.32,1.275);
+  box-shadow:0 24px 60px rgba(0,0,0,.28);
+}
+@keyframes popIn {
+  from{transform:scale(.55);opacity:0} to{transform:scale(1);opacity:1}
+}
+.sc-icon  { font-size:64px; margin-bottom:4px; }
+.sc-title { font-family:'Nunito',sans-serif; font-weight:900; font-size:26px; color:var(--green); margin-bottom:6px; }
+.sc-body  { font-size:14px; color:var(--muted); margin-bottom:4px; }
+.sc-change-amount {
+  font-family:'Nunito',sans-serif; font-weight:900; font-size:38px; color:var(--text);
+  display:block; margin:6px 0 16px;
+}
+.sc-breakdown {
+  background:#F9FAFB; border-radius:12px; padding:10px 14px;
+  margin-bottom:18px; text-align:left;
+}
+.sc-bd-row {
+  display:flex; justify-content:space-between;
+  font-size:13px; color:var(--muted); margin-bottom:3px;
+}
+.sc-bd-row span:last-child { font-weight:700; color:var(--text); }
+.sc-bd-divider {
+  font-family:'Nunito',sans-serif; font-weight:900; font-size:12px;
+  color:var(--muted); text-transform:uppercase; letter-spacing:.5px;
+  border-top:1px dashed #E5E7EB; margin-top:8px; padding-top:8px; margin-bottom:6px;
+}
+.sc-denom-row {
+  display:flex; align-items:center; gap:8px;
+  background:#F9FAFB; border-radius:10px; padding:6px 10px;
+  border:1px solid #E5E7EB; margin-bottom:5px;
+}
+.sc-denom-visuals {
+  display:flex; flex-wrap:wrap; gap:4px; flex:1; align-items:center;
+}
+.sc-denom-qty {
+  font-family:'Nunito',sans-serif; font-weight:800; font-size:12px;
+  color:#6B7280; white-space:nowrap; flex-shrink:0;
+}
+.sc-new {
+  width:100%; background:linear-gradient(135deg,#3B82F6,#6366F1);
+  color:#fff; border:none; border-radius:14px; padding:14px;
+  font-family:'Nunito',sans-serif; font-weight:900; font-size:16px;
+  cursor:pointer; box-shadow:0 4px 14px rgba(99,102,241,.4);
+  transition:transform .1s;
+}
+.sc-new:active { transform:scale(.97); }
+
+/* ════════════════════════════════
+   EDIT MODAL
+═══════════════════════════════════ */
+.modal-bg {
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,.52); z-index:900;
+  align-items:center; justify-content:center;
+}
+.modal-bg.show { display:flex; }
+.modal-box {
+  background:#fff; border-radius:20px; padding:22px;
+  width:420px; max-width:96%; max-height:90vh;
+  overflow:hidden; display:flex; flex-direction:column;
+  animation:popIn .2s ease;
+  box-shadow:0 20px 50px rgba(0,0,0,.22);
+}
+.modal-box h2 { font-family:'Nunito',sans-serif; font-weight:900; font-size:18px; margin-bottom:8px; }
+.modal-sub { font-size:11px; color:var(--muted); margin-bottom:12px; }
+.modal-grid {
+  display:grid; grid-template-columns: auto 1fr 1fr 1fr;
+  gap:6px; align-items:center; overflow-y:auto; flex:1;
+  padding-right:4px;
+}
+.modal-grid .mg-hdr {
+  font-size:10px; color:var(--muted); font-weight:700; text-align:center;
+  text-transform:uppercase; letter-spacing:.5px; padding-bottom:4px;
+  border-bottom:1px solid #E5E7EB;
+}
+.modal-grid .mg-emoji { font-size:22px; }
+.modal-price-input {
+  background:#F9FAFB; border:2px solid #E5E7EB; border-radius:8px;
+  padding:6px 6px; font-family:'Nunito',sans-serif; font-weight:900;
+  font-size:13px; text-align:right; color:var(--text); width:100%;
+}
+.modal-price-input:focus { outline:none; border-color:var(--blue); }
+.modal-btns { display:flex; gap:8px; margin-top:14px; flex-shrink:0; }
+.modal-btn {
+  flex:1; border:none; border-radius:12px; padding:12px;
+  font-family:'Nunito',sans-serif; font-weight:900; font-size:14px; cursor:pointer;
+}
+.modal-btn-cancel { background:#F3F4F6; color:var(--muted); }
+.modal-btn-save   { background:var(--blue); color:#fff; }
+
+/* scrollbar */
+::-webkit-scrollbar { width:4px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:#D1D5DB; border-radius:4px; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     SCREEN 1 — SHOP
+══════════════════════════════════════ -->
+<div class="screen active" id="shopScreen">
+
+  <header>
+    <div class="shop-title">🏪 Toy Shop</div>
+    <div class="header-pill">👩‍💼 Cashier</div>
+    <button class="header-pill" onclick="openEditModal()">✏️ Edit Prices</button>
+  </header>
+
+  <div class="body">
+
+    <!-- Items -->
+    <div class="items-panel">
+      <div class="panel-top">
+        <span class="panel-label">🛒 Items</span>
+        <div class="diff-tabs">
+          <button class="diff-tab easy active" onclick="setDiff('easy',this)">Easy $</button>
+          <button class="diff-tab inter"       onclick="setDiff('intermediate',this)">Medium $</button>
+          <button class="diff-tab hard"        onclick="setDiff('difficult',this)">Hard $</button>
+        </div>
+      </div>
+      <div class="items-scroll">
+        <div class="items-grid" id="itemsGrid"></div>
+      </div>
+    </div>
+
+    <!-- Register -->
+    <div class="register-panel">
+      <div class="receipt" id="receipt">
+        <div class="receipt-hdr">
+          <div class="receipt-hdr-name">🏪 Toy Shop</div>
+          <div class="receipt-hdr-sub">Today's receipt</div>
+        </div>
+        <div class="receipt-empty" id="emptyMsg">
+          <span class="receipt-empty-icon">🛍️</span>
+          Tap items to add!
+        </div>
+      </div>
+      <div class="totals-bar">
+        <div class="tot-row"><span>Items</span><span id="itemCount">0</span></div>
+        <div class="tot-grand">
+          <span class="tot-label">TOTAL</span>
+          <span class="tot-amount" id="shopTotal">$0.00</span>
+        </div>
+      </div>
+      <div class="pay-btn-wrap">
+        <button class="pay-btn" onclick="goToPayment()">💳 Pay Now</button>
+        <button class="pay-btn-clear" onclick="clearCart()">🗑️ Clear All</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN 2 — PAYMENT
+══════════════════════════════════════ -->
+<div class="screen" id="payScreen">
+
+  <header>
+    <div class="shop-title">💳 Payment</div>
+    <div class="header-pill" id="payTotalPill">Total: $0.00</div>
+    <div style="width:90px"></div>
+  </header>
+
+  <div class="body">
+
+    <!-- Left: method + denominations -->
+    <div class="pay-left" id="payLeft">
+
+      <div class="method-tabs">
+        <button class="method-tab cash active" id="tabCash" onclick="setMethod('cash')">
+          <span class="mt-icon">💵</span> Cash
+        </button>
+        <button class="method-tab card" id="tabCard" onclick="setMethod('card')">
+          <span class="mt-icon">💳</span> Card
+        </button>
+      </div>
+
+      <!-- Cash denominations -->
+      <div id="cashArea">
+        <div class="denom-title">💵 Customer pays — tap to add, press − to remove</div>
+        <div class="denom-grid" id="denomGrid"></div>
+
+        <!-- Change guide -->
+        <div class="change-guide" id="changeGuide" style="display:none;">
+          <div class="cg-header">
+            <span class="cg-title">🪙 Give back as change</span>
+            <span class="cg-amount" id="cgAmount"></span>
+          </div>
+          <div class="cg-denoms" id="cgDenoms"></div>
+          <div class="cg-exact" id="cgExact" style="display:none;">
+            <span>🎯 Exact change — no change needed!</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card area -->
+      <div class="card-pay-area" id="cardArea">
+        <div class="card-visual">
+          <div class="card-chip">💳</div>
+          <div class="card-num">•••• •••• •••• 1234</div>
+          <div class="card-name">TOY SHOP CARD</div>
+        </div>
+        <div class="card-tap-hint">
+          <span class="big">📲</span>
+          Tap or swipe card to pay
+        </div>
+        <button class="card-confirm-btn" onclick="completeCardPay()">✅ Confirm Card Payment</button>
+      </div>
+
+    </div>
+
+    <!-- Right: order summary + totals -->
+    <div class="pay-right">
+
+      <div class="pay-summary" id="paySummary"></div>
+
+      <div class="pay-totals">
+        <div class="pt-row"><span>Items</span><span id="payItemCount">0</span></div>
+        <div class="pt-big">
+          <span class="pt-label">TOTAL</span>
+          <span class="pt-amount" id="payTotal">$0.00</span>
+        </div>
+
+        <!-- Cash counter (hidden for card) -->
+        <div class="cash-counter" id="cashCounter">
+          <div class="cc-row">
+            <span class="cc-label">💵 Cash given</span>
+            <span class="cc-val" id="cashGiven">$0.00</span>
+          </div>
+          <div class="cc-change-row">
+            <span class="cc-change-label" id="changeLabel">Change</span>
+            <span class="cc-change-val cc-positive" id="changeVal">$0.00</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="pay-footer">
+        <button class="pf-back" onclick="goToShop()">← Back to Shop</button>
+        <button class="pf-complete" id="completeBtn" onclick="completeCashPay()" disabled>
+          ✅ Complete Sale
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- SUCCESS -->
+<div class="success-overlay" id="successOverlay">
+  <div class="success-card">
+    <div class="sc-icon" id="scIcon">🎉</div>
+    <div class="sc-title" id="scTitle">Sale Complete!</div>
+    <div class="sc-body" id="scBody">Change to give back:</div>
+    <span class="sc-change-amount" id="scChange">$0.00</span>
+    <div class="sc-breakdown" id="scBreakdown"></div>
+    <button class="sc-new" onclick="newSale()">🛍️ Start New Sale</button>
+  </div>
+</div>
+
+<!-- EDIT PRICES MODAL -->
+<div class="modal-bg" id="editModal">
+  <div class="modal-box">
+    <h2>✏️ Edit Prices</h2>
+    <p class="modal-sub">Easy · Medium · Hard — change any price then Save.</p>
+    <div class="modal-grid" id="editGrid"></div>
+    <div class="modal-btns">
+      <button class="modal-btn modal-btn-cancel" onclick="closeEditModal()">Cancel</button>
+      <button class="modal-btn modal-btn-save"   onclick="saveEditModal()">💾 Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════
+const ITEMS = [
+  {id:'car',     name:'Car',        emoji:'🚗', color:'#FF4D4D'},
+  {id:'train',   name:'Train',      emoji:'🚂', color:'#3B82F6'},
+  {id:'doll',    name:'Doll',       emoji:'🪆', color:'#F472B6'},
+  {id:'teddy',   name:'Teddy Bear', emoji:'🧸', color:'#92400E'},
+  {id:'book',    name:'Book',       emoji:'📚', color:'#22C55E'},
+  {id:'meal',    name:'Meal',       emoji:'🍔', color:'#FB923C'},
+  {id:'dessert', name:'Dessert',    emoji:'🧁', color:'#A855F7'},
+  {id:'drink',   name:'Drink',      emoji:'🥤', color:'#14B8A6'},
+  {id:'fruits',  name:'Fruits',     emoji:'🍎', color:'#FACC15'},
+  {id:'robot',   name:'Robot',      emoji:'🤖', color:'#3B82F6'},
+  {id:'blocks',  name:'Blocks',     emoji:'🧩', color:'#22C55E'},
+  {id:'ball',    name:'Ball',       emoji:'⚽', color:'#A855F7'},
+];
+
+const BASE_PRICES = {
+  easy:         {car:7,    train:9,    doll:6,    teddy:8,    book:5,    meal:10,    dessert:3,    drink:4,    fruits:2,    robot:11,    blocks:12,    ball:1},
+  intermediate: {car:7.50, train:8.50, doll:6.50, teddy:9.50, book:5.50, meal:10.50, dessert:3.50, drink:4.50, fruits:2.50, robot:11.50, blocks:15.00, ball:1.50},
+  difficult:    {car:7.20, train:18.90,doll:16.40,teddy:19.70,book:5.30, meal:10.10, dessert:3.60, drink:14.80,fruits:2.90, robot:21.40, blocks:30.00, ball:1.50},
+};
+
+// Australian denominations (value in cents, type, display)
+const DENOMS = [
+  {cents:1000, type:'note', label:'$10', bg:'#4B7BEC', fg:'#fff', accent:'#3867D6'},
+  {cents:500,  type:'note', label:'$5',  bg:'#FC5C65', fg:'#fff', accent:'#EB3B5A'},
+  {cents:200,  type:'note', label:'$2',  bg:'#F7B731', fg:'#fff', accent:'#E1A71E'},
+  {cents:100,  type:'coin', label:'$1',  bg:'linear-gradient(145deg,#FFD700,#FFA500)', fg:'#7a4800', accent:'#DAA520', gold:true},
+  {cents:50,   type:'coin', label:'50c', bg:'linear-gradient(145deg,#E8E8E8,#B8B8B8)', fg:'#444', accent:'#999'},
+  {cents:20,   type:'coin', label:'20c', bg:'linear-gradient(145deg,#E8E8E8,#B8B8B8)', fg:'#444', accent:'#999'},
+  {cents:10,   type:'coin', label:'10c', bg:'linear-gradient(145deg,#E8E8E8,#B8B8B8)', fg:'#444', accent:'#999'},
+];
+
+let prices = JSON.parse(JSON.stringify(BASE_PRICES));
+let currentDiff = 'easy';
+let cart = [];           // [{item, qty, price}]
+let payMethod = 'cash';
+let denomQty = {};       // {cents: qty}
+DENOMS.forEach(d => denomQty[d.cents] = 0);
+
+// ═══════════════════════════════════════════════
+// SCREENS
+// ═══════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function goToPayment() {
+  if (cart.length === 0) return;
+  resetDenoms();
+  renderPaySummary();
+  updatePayTotals();
+  setMethod('cash');
+  showScreen('payScreen');
+}
+
+function goToShop() {
+  showScreen('shopScreen');
+}
+
+// ═══════════════════════════════════════════════
+// SHOP — ITEMS
+// ═══════════════════════════════════════════════
+function renderItems() {
+  const grid = document.getElementById('itemsGrid');
+  grid.innerHTML = '';
+  ITEMS.forEach(item => {
+    const p = prices[currentDiff][item.id];
+    const card = document.createElement('div');
+    card.className = 'item-card';
+    card.style.cssText = `--ic:${item.color}; border-color:${item.color}40;`;
+    card.innerHTML = `
+      <span class="item-emoji">${item.emoji}</span>
+      <span class="item-name">${item.name}</span>
+      <span class="item-price">${fmt(p)}</span>
+    `;
+    card.addEventListener('click', () => addItem(item, p, card));
+    grid.appendChild(card);
+  });
+}
+
+function setDiff(d, btn) {
+  currentDiff = d;
+  document.querySelectorAll('.diff-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderItems();
+}
+
+// ═══════════════════════════════════════════════
+// SHOP — CART
+// ═══════════════════════════════════════════════
+function addItem(item, price, cardEl) {
+  cardEl.classList.remove('bounce');
+  void cardEl.offsetWidth;
+  cardEl.classList.add('bounce');
+  const ex = cart.find(c => c.item.id === item.id && c.price === price);
+  if (ex) ex.qty++; else cart.push({item, qty:1, price});
+  renderReceipt();
+}
+
+function changeQty(i, d) {
+  cart[i].qty += d;
+  if (cart[i].qty <= 0) cart.splice(i,1);
+  renderReceipt();
+}
+
+function removeItem(i) {
+  cart.splice(i,1);
+  renderReceipt();
+}
+
+function clearCart() {
+  cart = [];
+  renderReceipt();
+}
+
+function getTotal() {
+  return Math.round(cart.reduce((s,c) => s + c.qty * c.price, 0) * 100) / 100;
+}
+
+function renderReceipt() {
+  const receipt = document.getElementById('receipt');
+  receipt.querySelectorAll('.line-item').forEach(el => el.remove());
+  const empty = document.getElementById('emptyMsg');
+
+  if (cart.length === 0) {
+    empty.style.display = 'flex';
+  } else {
+    empty.style.display = 'none';
+    cart.forEach((c,i) => {
+      const el = document.createElement('div');
+      el.className = 'line-item';
+      el.style.cssText = `--ic:${c.item.color}`;
+      const lt = (c.qty * c.price).toFixed(2);
+      el.innerHTML = `
+        <span class="li-emoji">${c.item.emoji}</span>
+        <div class="li-info">
+          <div class="li-name">${c.item.name}</div>
+          <div class="li-each">${fmt(c.price)} each</div>
+        </div>
+        <div class="li-qctrl">
+          <button class="qbtn" onclick="changeQty(${i},-1)">−</button>
+          <span class="qnum">${c.qty}</span>
+          <button class="qbtn" onclick="changeQty(${i},+1)">+</button>
+        </div>
+        <span class="li-total">$${lt}</span>
+        <button class="li-rm" onclick="removeItem(${i})">✕</button>
+      `;
+      receipt.appendChild(el);
+    });
+  }
+
+  const total = getTotal();
+  const count = cart.reduce((s,c) => s + c.qty, 0);
+  document.getElementById('shopTotal').textContent  = fmt(total);
+  document.getElementById('itemCount').textContent  = count + (count===1?' item':' items');
+}
+
+// ═══════════════════════════════════════════════
+// PAYMENT SCREEN
+// ═══════════════════════════════════════════════
+function setMethod(m) {
+  payMethod = m;
+  document.getElementById('tabCash').classList.toggle('active', m==='cash');
+  document.getElementById('tabCard').classList.toggle('active', m==='card');
+  document.getElementById('cashArea').style.display  = m==='cash' ? '' : 'none';
+  document.getElementById('cardArea').classList.toggle('show', m==='card');
+  document.getElementById('cashCounter').style.display = m==='cash' ? '' : 'none';
+  const btn = document.getElementById('completeBtn');
+  if (m==='card') {
+    btn.style.display = 'none';
+  } else {
+    btn.style.display = '';
+    updatePayTotals();
+  }
+}
+
+// ── Denominations ──
+function resetDenoms() {
+  DENOMS.forEach(d => denomQty[d.cents] = 0);
+  renderDenoms();
+}
+
+function renderDenoms() {
+  const grid = document.getElementById('denomGrid');
+  grid.innerHTML = '';
+  DENOMS.forEach(d => {
+    const el = document.createElement('div');
+    const used = denomQty[d.cents] > 0;
+    el.className = (d.type==='note' ? 'denom-note' : ('denom-coin' + (d.gold ? ' gold-coin' : ''))) + (used ? ' used' : '');
+
+    const badge = `<span class="denom-qty-badge${used?' show':''}" id="badge_${d.cents}">${denomQty[d.cents]}</span>`;
+    const minus  = `<button class="denom-minus" onclick="removeDenom(event,${d.cents})">−</button>`;
+
+    if (d.type === 'note') {
+      el.style.cssText = `border-color:${d.accent}; padding:14px 6px;`;
+      el.innerHTML = `
+        ${badge}
+        <div class="note-body" style="background:${d.bg};color:${d.fg};">
+          ${d.label}
+        </div>
+        <span class="note-label" style="color:${d.accent};">${d.label}</span>
+        ${minus}
+      `;
+    } else {
+      // coin — bg may be a gradient string
+      const borderCol = d.gold ? '#DAA520' : '#999';
+      const shadow = d.gold
+        ? '0 4px 12px rgba(218,165,32,.5), inset 0 2px 0 rgba(255,255,230,.5), inset 0 -2px 0 rgba(120,80,0,.25)'
+        : '0 4px 10px rgba(0,0,0,.2), inset 0 2px 0 rgba(255,255,255,.4), inset 0 -2px 0 rgba(0,0,0,.15)';
+      el.style.cssText = `background:${d.bg}; border-color:${borderCol}; box-shadow:${shadow};`;
+      el.innerHTML = `
+        ${badge}
+        <span class="coin-val" style="color:${d.fg}; text-shadow:0 1px 0 rgba(255,255,255,.4);">${d.label}</span>
+        ${minus}
+      `;
+    }
+
+    el.addEventListener('click', (e) => {
+      if (e.target.classList.contains('denom-minus')) return;
+      addDenom(d.cents);
+    });
+
+    grid.appendChild(el);
+  });
+
+  updatePayTotals();
+}
+
+function addDenom(cents) {
+  denomQty[cents]++;
+  renderDenoms();
+}
+
+function removeDenom(e, cents) {
+  e.stopPropagation();
+  if (denomQty[cents] > 0) denomQty[cents]--;
+  renderDenoms();
+}
+
+function getCashTotal() {
+  return Math.round(DENOMS.reduce((s,d) => s + d.cents * denomQty[d.cents], 0)) / 100;
+}
+
+// ── Summary & totals ──
+function renderPaySummary() {
+  const wrap = document.getElementById('paySummary');
+  wrap.innerHTML = `
+    <div class="ps-hdr">
+      <div class="ps-hdr-name">🧾 Order Summary</div>
+    </div>
+  `;
+  cart.forEach(c => {
+    const el = document.createElement('div');
+    el.className = 'ps-item';
+    el.style.cssText = `--ic:${c.item.color}`;
+    el.innerHTML = `
+      <span class="ps-emoji">${c.item.emoji}</span>
+      <span class="ps-name">${c.item.name} × ${c.qty}</span>
+      <span class="ps-amt">${fmt(c.qty * c.price)}</span>
+    `;
+    wrap.appendChild(el);
+  });
+}
+
+function renderChangeGuide(changeCents) {
+  const guide   = document.getElementById('changeGuide');
+  const cgAmt   = document.getElementById('cgAmount');
+  const cgDenoms= document.getElementById('cgDenoms');
+  const cgExact = document.getElementById('cgExact');
+
+  if (changeCents <= 0) {
+    guide.style.display = 'none';
+    return;
+  }
+
+  guide.style.display = '';
+  cgAmt.textContent   = fmt(changeCents / 100);
+
+  const breakdown = greedyBreakdown(changeCents);
+
+  if (breakdown.length === 0) {
+    cgDenoms.innerHTML = '';
+    cgExact.style.display = '';
+    return;
+  }
+
+  cgExact.style.display = 'none';
+  cgDenoms.innerHTML = '';
+
+  breakdown.forEach(({denom, qty}) => {
+    const row = document.createElement('div');
+    row.className = 'cg-row';
+    const subtotal = fmt(denom.cents * qty / 100);
+    const qtyLabel = qty === 1 ? `× 1` : `× ${qty} = ${subtotal}`;
+    row.innerHTML = `
+      <div class="cg-row-visuals">${denomVisualHTML(denom, qty)}</div>
+      <span class="cg-row-label">${qtyLabel}</span>
+    `;
+    cgDenoms.appendChild(row);
+  });
+}
+
+function updatePayTotals() {
+  const total  = getTotal();
+  const cash   = getCashTotal();
+  const change = Math.round((cash - total) * 100) / 100;
+  const count  = cart.reduce((s,c)=>s+c.qty,0);
+
+  document.getElementById('payTotal').textContent     = fmt(total);
+  document.getElementById('payItemCount').textContent = count + (count===1?' item':' items');
+  document.getElementById('payTotalPill').textContent = 'Total: ' + fmt(total);
+  document.getElementById('cashGiven').textContent    = fmt(cash);
+
+  const counter = document.getElementById('cashCounter');
+  const lbl     = document.getElementById('changeLabel');
+  const val     = document.getElementById('changeVal');
+  const btn     = document.getElementById('completeBtn');
+
+  if (change < 0) {
+    counter.classList.add('owe');
+    lbl.textContent = '⚠️ Still need';
+    val.textContent = fmt(Math.abs(change));
+    val.className   = 'cc-change-val cc-negative';
+    btn.disabled    = true;
+    renderChangeGuide(0); // hide guide when not enough cash
+  } else {
+    counter.classList.remove('owe');
+    lbl.textContent = '✅ Change';
+    val.textContent = fmt(change);
+    val.className   = 'cc-change-val cc-positive';
+    btn.disabled    = (cash === 0);
+    renderChangeGuide(Math.round(change * 100));
+  }
+}
+
+// ── Complete ──
+function completeCashPay() {
+  const total  = getTotal();
+  const cash   = getCashTotal();
+  const change = Math.round((cash - total) * 100) / 100;
+  if (cash < total) return;
+  showSuccess('cash', total, cash, change);
+}
+
+function completeCardPay() {
+  const total = getTotal();
+  showSuccess('card', total, total, 0);
+}
+
+function greedyBreakdown(cents) {
+  // Always sort largest → smallest so we use fewest notes/coins
+  const breakdown = [];
+  let remain = cents;
+  [...DENOMS].sort((a,b) => b.cents - a.cents).forEach(d => {
+    const n = Math.floor(remain / d.cents);
+    if (n > 0) { breakdown.push({denom:d, qty:n}); remain -= n * d.cents; }
+  });
+  return breakdown;
+}
+
+function denomVisualHTML(denom, qty) {
+  let tokens = '';
+  for (let i = 0; i < qty; i++) {
+    if (denom.type === 'note') {
+      tokens += `<span class="cg-note" style="background:${denom.bg};">${denom.label}</span>`;
+    } else {
+      const border = denom.gold ? '#DAA520' : '#aaa';
+      const bg     = denom.gold ? 'linear-gradient(145deg,#FFD700,#FFA500)' : 'linear-gradient(145deg,#E8E8E8,#B8B8B8)';
+      const fg     = denom.gold ? '#7a4800' : '#444';
+      tokens += `<span class="cg-coin" style="background:${bg};border-color:${border};color:${fg};">${denom.label}</span>`;
+    }
+  }
+  return tokens;
+}
+
+function showSuccess(method, total, paid, change) {
+  const scIcon  = document.getElementById('scIcon');
+  const scTitle = document.getElementById('scTitle');
+  const scBody  = document.getElementById('scBody');
+  const scAmt   = document.getElementById('scChange');
+  const scBd    = document.getElementById('scBreakdown');
+
+  if (method === 'card') {
+    scIcon.textContent  = '💳';
+    scTitle.textContent = 'Payment Approved!';
+    scBody.textContent  = 'Card payment successful!';
+    scAmt.textContent   = '';
+    scBd.innerHTML = `
+      <div class="sc-bd-row"><span>Total charged</span><span>${fmt(total)}</span></div>
+      <div class="sc-bd-row"><span>Method</span><span>💳 Card</span></div>
+    `;
+  } else {
+    scIcon.textContent  = '🎉';
+    scTitle.textContent = 'Sale Complete!';
+    scAmt.textContent   = fmt(change);
+
+    const changeCents = Math.round(change * 100);
+    const breakdown   = greedyBreakdown(changeCents);
+
+    // Summary rows (total + paid)
+    let html = `
+      <div class="sc-bd-row"><span>Total</span><span>${fmt(total)}</span></div>
+      <div class="sc-bd-row"><span>Cash paid</span><span>${fmt(paid)}</span></div>
+    `;
+
+    if (changeCents === 0) {
+      scBody.textContent = '🎯 Exact change — nothing to give back!';
+      html += `<div class="sc-bd-row" style="margin-top:6px;"><span>No change needed</span><span>🎯</span></div>`;
+    } else {
+      scBody.textContent = 'Give back as change:';
+      html += `<div class="sc-bd-divider">🪙 Change breakdown</div>`;
+      breakdown.forEach(({denom, qty}) => {
+        const subtotal  = fmt(denom.cents * qty / 100);
+        const qtyLabel  = qty > 1 ? `× ${qty} = ${subtotal}` : `× 1`;
+        html += `
+          <div class="sc-denom-row">
+            <div class="sc-denom-visuals">${denomVisualHTML(denom, qty)}</div>
+            <span class="sc-denom-qty">${qtyLabel}</span>
+          </div>`;
+      });
+    }
+
+    scBd.innerHTML = html;
+  }
+
+  document.getElementById('successOverlay').classList.add('show');
+}
+
+function newSale() {
+  document.getElementById('successOverlay').classList.remove('show');
+  cart = [];
+  renderReceipt();
+  resetDenoms();
+  showScreen('shopScreen');
+}
+
+// ═══════════════════════════════════════════════
+// EDIT PRICES
+// ═══════════════════════════════════════════════
+function openEditModal() {
+  const grid = document.getElementById('editGrid');
+  grid.innerHTML = `
+    <div class="mg-hdr"></div>
+    <div class="mg-hdr">Easy</div>
+    <div class="mg-hdr">Medium</div>
+    <div class="mg-hdr">Hard</div>
+  `;
+  ITEMS.forEach(item => {
+    const emoji = document.createElement('div');
+    emoji.className = 'mg-emoji';
+    emoji.title = item.name;
+    emoji.textContent = item.emoji;
+    grid.appendChild(emoji);
+    ['easy','intermediate','difficult'].forEach(d => {
+      const inp = document.createElement('input');
+      inp.type = 'number'; inp.step = '0.01'; inp.min = '0.01';
+      inp.className = 'modal-price-input';
+      inp.value = prices[d][item.id];
+      inp.dataset.diff = d;
+      inp.dataset.id   = item.id;
+      grid.appendChild(inp);
+    });
+  });
+  document.getElementById('editModal').classList.add('show');
+}
+
+function closeEditModal() {
+  document.getElementById('editModal').classList.remove('show');
+}
+
+function saveEditModal() {
+  document.querySelectorAll('#editGrid input').forEach(inp => {
+    const v = parseFloat(inp.value);
+    if (!isNaN(v) && v > 0) prices[inp.dataset.diff][inp.dataset.id] = Math.round(v*100)/100;
+  });
+  closeEditModal();
+  renderItems();
+  clearCart();
+}
+
+// ═══════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════
+function fmt(n) { return '$' + Number(n).toFixed(2); }
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+renderItems();
+renderReceipt();
+renderDenoms();
+</script>
+</body>
+</html>
